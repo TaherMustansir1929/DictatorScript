@@ -51,7 +51,7 @@ void Lexer::initKeywords() {
     keywords_["null"]        = TokenType::KW_NULL_VAL;
 
     // Imports
-    keywords_["enlist"]      = TokenType::KW_ENLIST;
+    keywords_["import"]      = TokenType::KW_ENLIST;
 
     // Hashmaps
     keywords_["map"]         = TokenType::KW_MAP;

@@ -1,5 +1,5 @@
-// math_utils.ds — utility functions for math operations
-// This file is imported by main.ds via: enlist "math_utils"
+// utils.ds — utility functions for math operations
+// This file is imported by main.ds via: import "utils"
 
 command add(int a, int b) -> int {
     report a + b

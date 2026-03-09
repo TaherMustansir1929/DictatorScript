@@ -150,7 +150,7 @@ scores["Alice"] = 95
 ### Imports
 
 ```
-enlist "utils"                          // imports utils.ds
+import "utils"                          // imports utils.ds
 ```
 
 ### Comments

@@ -7,6 +7,7 @@
 #include <sstream>
 #include <iostream>
 #include <cstdlib>
+#include <algorithm>
 
 Compiler::Compiler() {}
 
@@ -39,6 +40,103 @@ int Compiler::invokeCppCompiler(const std::string& cppFile, const std::string& o
         std::cerr << "[DictatorScript Error] C++ compilation failed." << std::endl;
     }
     return result;
+}
+
+std::string Compiler::getDirectory(const std::string& filePath) {
+    auto lastSlash = filePath.find_last_of("/\\");
+    if (lastSlash != std::string::npos) {
+        return filePath.substr(0, lastSlash + 1);
+    }
+    return "";
+}
+
+std::string Compiler::normalizePath(const std::string& path) {
+    std::string result = path;
+    // Normalize backslashes to forward slashes for consistent comparison.
+    std::replace(result.begin(), result.end(), '\\', '/');
+    return result;
+}
+
+bool Compiler::resolveImports(ProgramNode& program, const std::string& baseDir,
+                              std::set<std::string>& importedFiles, bool verbose) {
+    // Collect import nodes and their positions.
+    std::vector<size_t> importIndices;
+    std::vector<std::string> importFilenames;
+
+    for (size_t i = 0; i < program.declarations.size(); i++) {
+        if (auto* enlist = dynamic_cast<EnlistNode*>(program.declarations[i].get())) {
+            importIndices.push_back(i);
+            importFilenames.push_back(enlist->filename);
+        }
+    }
+
+    if (importIndices.empty()) return true;
+
+    // Process imports in reverse order so insertion indices stay valid.
+    for (int idx = (int)importIndices.size() - 1; idx >= 0; idx--) {
+        size_t pos = importIndices[idx];
+        const std::string& importName = importFilenames[idx];
+
+        // Resolve the file path relative to the importing file's directory.
+        std::string importPath = baseDir + importName + ".ds";
+        std::string normalizedPath = normalizePath(importPath);
+
+        // Skip already-imported files (prevents circular imports).
+        if (importedFiles.count(normalizedPath)) {
+            // Remove the import node since it's already been processed.
+            program.declarations.erase(program.declarations.begin() + pos);
+            continue;
+        }
+
+        if (verbose) {
+            std::cout << "[DictatorScript] Importing: " << importPath << std::endl;
+        }
+
+        // Read the imported file.
+        std::string importSource = readFile(importPath);
+        if (importSource.empty()) {
+            errors_.error(importName + ".ds", 0, 0,
+                          "Could not open imported file: " + importPath);
+            return false;
+        }
+
+        importedFiles.insert(normalizedPath);
+
+        // Lex the imported file.
+        std::string importFilename = importName + ".ds";
+        Lexer importLexer(importSource, importFilename, errors_);
+        auto importTokens = importLexer.tokenize();
+
+        if (errors_.hasErrors()) return false;
+
+        // Parse the imported file.
+        Parser importParser(importTokens, importFilename, errors_);
+        auto importAST = importParser.parse();
+
+        if (errors_.hasErrors()) return false;
+
+        if (!importAST) {
+            errors_.error(importFilename, 0, 0,
+                          "Failed to parse imported file: " + importPath);
+            return false;
+        }
+
+        // Recursively resolve imports in the imported file.
+        std::string importDir = getDirectory(importPath);
+        if (!resolveImports(*importAST, importDir, importedFiles, verbose)) {
+            return false;
+        }
+
+        // Remove the import node and insert the imported declarations in its place.
+        program.declarations.erase(program.declarations.begin() + pos);
+        for (size_t j = 0; j < importAST->declarations.size(); j++) {
+            program.declarations.insert(
+                program.declarations.begin() + pos + j,
+                std::move(importAST->declarations[j]));
+        }
+    }
+
+    return true;
 }
 
 int Compiler::compile(const Options& options) {
@@ -91,6 +189,27 @@ int Compiler::compile(const Options& options) {
 
     Parser parser(tokens, filename, errors_);
     auto ast = parser.parse();
+
+    if (errors_.hasErrors()) {
+        errors_.printAll();
+        return 1;
+    }
+
+    // ---- Stage 2.5: Resolve imports ----
+    if (options.verbose) {
+        std::cout << "[DictatorScript] Resolving imports..." << std::endl;
+    }
+
+    if (ast) {
+        std::string baseDir = getDirectory(options.inputFile);
+        std::set<std::string> importedFiles;
+        importedFiles.insert(normalizePath(options.inputFile));
+
+        if (!resolveImports(*ast, baseDir, importedFiles, options.verbose)) {
+            errors_.printAll();
+            return 1;
+        }
+    }
 
     if (errors_.hasErrors()) {
         errors_.printAll();

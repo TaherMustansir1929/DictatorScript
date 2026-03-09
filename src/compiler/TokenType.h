@@ -60,7 +60,7 @@ enum class TokenType {
     KW_NULL_VAL,      // nullptr
 
     // Keywords — Multi-file / Imports
-    KW_ENLIST,        // #include / import for other .ds files
+    KW_ENLIST,        // import for other .ds files (keyword: "import")
 
     // Keywords — Hashmaps
     KW_MAP,           // map/hashmap type keyword

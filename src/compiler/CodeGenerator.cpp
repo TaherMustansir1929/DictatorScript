@@ -246,9 +246,9 @@ void CodeGenerator::visit(RegimeNode& node) {
     emitLine("}");
 }
 
-void CodeGenerator::visit(EnlistNode& node) {
-    // Transform .ds import to #include of the generated header.
-    emitLine("#include \"" + node.filename + ".h\"");
+void CodeGenerator::visit(EnlistNode& /*node*/) {
+    // Imports are resolved by the Compiler before code generation.
+    // Imported declarations are already merged into the AST.
 }
 
 // ============================================================================

@@ -1,0 +1,13 @@
+// test_chain.ds — tests chained imports (A imports B which imports C)
+import "test_chain_middle"
+
+regime start {
+    declare int x = middleFunc()
+    declare int y = leafFunc()
+    broadcast("middle: ")
+    broadcast(x)
+    broadcast("\n")
+    broadcast("leaf: ")
+    broadcast(y)
+    broadcast("\n")
+}

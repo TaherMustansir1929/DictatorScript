@@ -1,0 +1,5 @@
+// test_chain_leaf.ds — leaf of the import chain (no imports)
+
+command leafFunc() -> int {
+    report 5
+}

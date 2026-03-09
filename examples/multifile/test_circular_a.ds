@@ -1,0 +1,6 @@
+// test_circular_a.ds — tests circular import protection
+import "test_circular_b"
+
+command funcA() -> int {
+    report 42
+}

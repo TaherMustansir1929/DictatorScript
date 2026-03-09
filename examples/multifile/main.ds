@@ -1,12 +1,14 @@
 // main.ds — entry point demonstrating multi-file support
-enlist "utils"
+import "utils"
 
 regime start {
     declare int result = add(3, 4)
     broadcast("3 + 4 = ")
     broadcast(result)
+    broadcast("\n")
 
     declare int fact = factorial(5)
     broadcast("5! = ")
     broadcast(fact)
+    broadcast("\n")
 }

@@ -143,7 +143,7 @@ NodePtr Parser::parseTopLevel() {
             return parseEnlist();
         default:
             errors_.error(filename_, current().line, current().col,
-                          "Expected top-level declaration (law, command, regime, or enlist).");
+                          "Expected top-level declaration (law, command, regime, or import).");
             synchronize();
             return nullptr;
     }
@@ -245,7 +245,7 @@ std::unique_ptr<RegimeNode> Parser::parseRegime() {
 }
 
 // ============================================================================
-// Enlist: enlist "filename"
+// Import: import "filename"
 // ============================================================================
 
 std::unique_ptr<EnlistNode> Parser::parseEnlist() {
@@ -253,8 +253,8 @@ std::unique_ptr<EnlistNode> Parser::parseEnlist() {
     node->line = current().line;
     node->col = current().col;
 
-    expect(TokenType::KW_ENLIST, "Expected 'enlist'");
-    const Token& fileToken = expect(TokenType::TOKEN_STRING_LITERAL, "Expected filename string after 'enlist'");
+    expect(TokenType::KW_ENLIST, "Expected 'import'");
+    const Token& fileToken = expect(TokenType::TOKEN_STRING_LITERAL, "Expected filename string after 'import'");
     node->filename = fileToken.lexeme;
 
     return node;

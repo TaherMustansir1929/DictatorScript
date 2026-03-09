@@ -231,7 +231,7 @@ public:
     void print(int indent = 0) const override;
 };
 
-// File import: enlist "filename"
+// File import: import "filename"
 class EnlistNode : public ASTNode {
 public:
     std::string filename;

@@ -11,7 +11,7 @@
 // Consumes a token stream produced by the Lexer and builds an AST.
 //
 // Grammar overview (simplified):
-//   program       → (structDef | funcDef | regime | enlist)* EOF
+//   program       → (structDef | funcDef | regime | import)* EOF
 //   structDef     → "law" IDENT "{" field* "}"
 //   funcDef       → "command" IDENT "(" params ")" "->" type block
 //   regime        → "regime" "start" block

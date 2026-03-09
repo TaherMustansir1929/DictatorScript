@@ -1,0 +1,6 @@
+// test_chain_middle.ds — middle of the import chain
+import "test_chain_leaf"
+
+command middleFunc() -> int {
+    report leafFunc() + 10
+}
