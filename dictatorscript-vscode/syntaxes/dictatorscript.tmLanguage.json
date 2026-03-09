@@ -1,0 +1,263 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "DictatorScript",
+  "scopeName": "source.dictatorscript",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#characters" },
+    { "include": "#numbers" },
+    { "include": "#keywords" },
+    { "include": "#types" },
+    { "include": "#constants" },
+    { "include": "#functions" },
+    { "include": "#operators" },
+    { "include": "#punctuation" },
+    { "include": "#identifiers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.dictatorscript",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.dictatorscript",
+          "begin": "/\\*",
+          "end": "\\*/",
+          "beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.dictatorscript" } },
+          "endCaptures": { "0": { "name": "punctuation.definition.comment.end.dictatorscript" } }
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.dictatorscript",
+          "begin": "\"",
+          "end": "\"",
+          "beginCaptures": { "0": { "name": "punctuation.definition.string.begin.dictatorscript" } },
+          "endCaptures": { "0": { "name": "punctuation.definition.string.end.dictatorscript" } },
+          "patterns": [
+            {
+              "name": "constant.character.escape.dictatorscript",
+              "match": "\\\\[nNtT\\\\\"0]"
+            },
+            {
+              "name": "invalid.illegal.unknown-escape.dictatorscript",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "characters": {
+      "patterns": [
+        {
+          "name": "string.quoted.single.dictatorscript",
+          "begin": "'",
+          "end": "'",
+          "beginCaptures": { "0": { "name": "punctuation.definition.char.begin.dictatorscript" } },
+          "endCaptures": { "0": { "name": "punctuation.definition.char.end.dictatorscript" } },
+          "patterns": [
+            {
+              "name": "constant.character.escape.dictatorscript",
+              "match": "\\\\[nNtT\\\\'0]"
+            },
+            {
+              "name": "invalid.illegal.unknown-escape.dictatorscript",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.dictatorscript",
+          "match": "\\b[0-9]+\\.[0-9]+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.dictatorscript",
+          "match": "\\b[0-9]+\\b"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.flow.dictatorscript",
+          "match": "\\b(interrogate|otherwise|impose|from|forever|silence|proceed|report)\\b"
+        },
+        {
+          "name": "keyword.declaration.dictatorscript",
+          "match": "\\b(declare|elite|law|command)\\b"
+        },
+        {
+          "name": "keyword.entrypoint.dictatorscript",
+          "match": "\\b(regime)\\b"
+        },
+        {
+          "name": "keyword.io.dictatorscript",
+          "match": "\\b(broadcast|demand)\\b"
+        },
+        {
+          "name": "keyword.memory.dictatorscript",
+          "match": "\\b(summon|kill)\\b"
+        },
+        {
+          "name": "keyword.import.dictatorscript",
+          "match": "\\b(import)\\b"
+        },
+        {
+          "name": "variable.language.start.dictatorscript",
+          "match": "(?<=regime\\s+)\\b(start)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "storage.type.primitive.dictatorscript",
+          "match": "\\b(int|float|double|char|string|bool|void)\\b"
+        },
+        {
+          "name": "storage.type.map.dictatorscript",
+          "match": "\\b(map)\\b"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.true.dictatorscript",
+          "match": "\\b(loyal)\\b"
+        },
+        {
+          "name": "constant.language.boolean.false.dictatorscript",
+          "match": "\\b(traitor)\\b"
+        },
+        {
+          "name": "constant.language.null.dictatorscript",
+          "match": "\\b(null)\\b"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "comment": "Function definition: command funcName(",
+          "match": "\\b(command)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+          "captures": {
+            "1": { "name": "keyword.declaration.dictatorscript" },
+            "2": { "name": "entity.name.function.dictatorscript" }
+          }
+        },
+        {
+          "comment": "Struct definition: law StructName",
+          "match": "\\b(law)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.declaration.dictatorscript" },
+            "2": { "name": "entity.name.type.struct.dictatorscript" }
+          }
+        },
+        {
+          "comment": "Function call: name(",
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+          "captures": {
+            "1": { "name": "entity.name.function.call.dictatorscript" }
+          }
+        },
+        {
+          "comment": "Method call: .method(",
+          "match": "\\.([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+          "captures": {
+            "1": { "name": "entity.name.function.method.dictatorscript" }
+          }
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.assignment.dictatorscript",
+          "match": "(\\+=|-=|\\*=|/=|=)"
+        },
+        {
+          "name": "keyword.operator.comparison.dictatorscript",
+          "match": "(==|!=|<=|>=|<|>)"
+        },
+        {
+          "name": "keyword.operator.logical.dictatorscript",
+          "match": "(&&|\\|\\||!)"
+        },
+        {
+          "name": "keyword.operator.arithmetic.dictatorscript",
+          "match": "(\\+|-|\\*|/|%)"
+        },
+        {
+          "name": "keyword.operator.pointer.address.dictatorscript",
+          "match": "@"
+        },
+        {
+          "name": "keyword.operator.pointer.deref.dictatorscript",
+          "match": "\\^"
+        },
+        {
+          "name": "keyword.operator.arrow.dictatorscript",
+          "match": "->"
+        },
+        {
+          "name": "keyword.operator.range.dictatorscript",
+          "match": "\\.\\."
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.section.block.begin.dictatorscript",
+          "match": "\\{"
+        },
+        {
+          "name": "punctuation.section.block.end.dictatorscript",
+          "match": "\\}"
+        },
+        {
+          "name": "punctuation.section.parens.begin.dictatorscript",
+          "match": "\\("
+        },
+        {
+          "name": "punctuation.section.parens.end.dictatorscript",
+          "match": "\\)"
+        },
+        {
+          "name": "punctuation.section.brackets.begin.dictatorscript",
+          "match": "\\["
+        },
+        {
+          "name": "punctuation.section.brackets.end.dictatorscript",
+          "match": "\\]"
+        },
+        {
+          "name": "punctuation.separator.comma.dictatorscript",
+          "match": ","
+        },
+        {
+          "name": "punctuation.accessor.dot.dictatorscript",
+          "match": "\\."
+        }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "variable.other.dictatorscript",
+          "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        }
+      ]
+    }
+  }
+}

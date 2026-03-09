@@ -1,0 +1,100 @@
+{
+  "name": "dictatorscript",
+  "displayName": "DictatorScript",
+  "description": "Language support for DictatorScript (.ds) — syntax highlighting, linting, LSP, and more.",
+  "version": "0.2.0",
+  "publisher": "dictatorscript",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Snippets"
+  ],
+  "activationEvents": [
+    "onLanguage:dictatorscript"
+  ],
+  "main": "./client/out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "dictatorscript",
+        "aliases": [
+          "DictatorScript",
+          "ds"
+        ],
+        "extensions": [
+          ".ds"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "dictatorscript",
+        "scopeName": "source.dictatorscript",
+        "path": "./syntaxes/dictatorscript.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "dictatorscript",
+        "path": "./snippets/dictatorscript.json"
+      }
+    ],
+    "configuration": {
+      "title": "DictatorScript",
+      "properties": {
+        "dictatorscript.compilerPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the dsc compiler executable. If empty, the extension will search PATH."
+        },
+        "dictatorscript.lint.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable the built-in linter."
+        },
+        "dictatorscript.lint.onSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run the linter automatically when a file is saved."
+        },
+        "dictatorscript.lint.onType": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run the linter as you type (with debounce)."
+        },
+        "dictatorscript.lint.debounceMs": {
+          "type": "number",
+          "default": 500,
+          "description": "Debounce delay in milliseconds for lint-on-type."
+        },
+        "dictatorscript.trace.server": {
+          "type": "string",
+          "enum": ["off", "messages", "verbose"],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the DictatorScript language server."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -b ./shared/tsconfig.json ./server/tsconfig.json ./client/tsconfig.json",
+    "watch": "tsc -b -w ./shared/tsconfig.json ./server/tsconfig.json ./client/tsconfig.json",
+    "clean": "tsc -b --clean ./shared/tsconfig.json ./server/tsconfig.json ./client/tsconfig.json"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.3.0",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.11"
+  }
+}

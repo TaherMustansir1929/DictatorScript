@@ -1,0 +1,135 @@
+{
+  "Regime (entry point)": {
+    "prefix": "regime",
+    "body": [
+      "regime start {",
+      "    $0",
+      "}"
+    ],
+    "description": "Create the main entry point (regime start)"
+  },
+  "Function definition": {
+    "prefix": "command",
+    "body": [
+      "command ${1:name}(${2:params}) -> ${3:void} {",
+      "    $0",
+      "}"
+    ],
+    "description": "Define a function (command)"
+  },
+  "Struct definition": {
+    "prefix": "law",
+    "body": [
+      "law ${1:Name} {",
+      "    ${2:int field}",
+      "}"
+    ],
+    "description": "Define a struct (law)"
+  },
+  "Variable declaration": {
+    "prefix": "declare",
+    "body": "declare ${1:int} ${2:name} = ${3:0}",
+    "description": "Declare a variable"
+  },
+  "Const variable declaration": {
+    "prefix": "elite",
+    "body": "declare elite ${1:int} ${2:NAME} = ${3:0}",
+    "description": "Declare a const (elite) variable"
+  },
+  "If statement": {
+    "prefix": "interrogate",
+    "body": [
+      "interrogate (${1:condition}) {",
+      "    $0",
+      "}"
+    ],
+    "description": "If statement (interrogate)"
+  },
+  "If-Else statement": {
+    "prefix": "interrogate-otherwise",
+    "body": [
+      "interrogate (${1:condition}) {",
+      "    $2",
+      "} otherwise {",
+      "    $0",
+      "}"
+    ],
+    "description": "If-Else statement (interrogate-otherwise)"
+  },
+  "Range for loop": {
+    "prefix": "impose-range",
+    "body": [
+      "impose (int ${1:i} from [${2:0}..${3:10}]) {",
+      "    $0",
+      "}"
+    ],
+    "description": "Range for loop (impose from [start..end])"
+  },
+  "For-each loop": {
+    "prefix": "impose-each",
+    "body": [
+      "impose (${1:int} ${2:item} from ${3:collection}) {",
+      "    $0",
+      "}"
+    ],
+    "description": "For-each loop (impose from collection)"
+  },
+  "While loop": {
+    "prefix": "impose-while",
+    "body": [
+      "impose (${1:condition}) {",
+      "    $0",
+      "}"
+    ],
+    "description": "While loop (impose)"
+  },
+  "Infinite loop": {
+    "prefix": "impose-forever",
+    "body": [
+      "impose forever {",
+      "    $0",
+      "}"
+    ],
+    "description": "Infinite loop (impose forever)"
+  },
+  "Print / Broadcast": {
+    "prefix": "broadcast",
+    "body": "broadcast(${1:\"Hello\\n\"})",
+    "description": "Print output (broadcast)"
+  },
+  "Read input / Demand": {
+    "prefix": "demand",
+    "body": "demand(${1:variable})",
+    "description": "Read input (demand)"
+  },
+  "Import file": {
+    "prefix": "import",
+    "body": "import \"${1:filename}\"",
+    "description": "Import another .ds file"
+  },
+  "Array declaration": {
+    "prefix": "declare-array",
+    "body": "declare ${1:int}[] ${2:arr} = [${3:1, 2, 3}]",
+    "description": "Declare an array"
+  },
+  "Map declaration": {
+    "prefix": "declare-map",
+    "body": "declare map<${1:string}, ${2:int}> ${3:myMap}",
+    "description": "Declare a hashmap"
+  },
+  "Pointer allocation": {
+    "prefix": "summon",
+    "body": "declare ${1:int}-> ${2:ptr} = summon ${1:int}",
+    "description": "Allocate memory with summon (new)"
+  },
+  "Free memory": {
+    "prefix": "kill",
+    "body": "kill ${1:ptr}",
+    "description": "Free memory with kill (delete)"
+  },
+  "Return statement": {
+    "prefix": "report",
+    "body": "report ${1:value}",
+    "description": "Return a value (report)"
+  }
+}
