@@ -1,0 +1,17 @@
+// math_utils.ds — utility functions for math operations
+// This file is imported by main.ds via: enlist "math_utils"
+
+command add(int a, int b) -> int {
+    report a + b
+}
+
+command subtract(int a, int b) -> int {
+    report a - b
+}
+
+command factorial(int n) -> int {
+    interrogate (n <= 1) {
+        report 1
+    }
+    report n * factorial(n - 1)
+}

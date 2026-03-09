@@ -1,0 +1,61 @@
+law Student { // law corresponds to struct
+    string name
+    int marks
+    char grade
+    bool is_pass
+}
+
+command register_student(string name, int marks, char grade, bool is_pass) -> Student { // command corresponds to a user-defined function: given is a function named 'register_student' with 4 parameters and a return type of the Student struct
+    Student s = {name, marks, grade.toUppercase(), is_bool} // initialize a Student struct with values passed in the parameters
+    report s // return the Student struct from above
+}
+
+regime start { // int main
+    declare int a = 6
+    declare int b = 7
+    declare float c = a / b
+
+    declare bool is_true = loyal // true
+    is_true = traitor // false
+
+    declare int[] arr = [1,2,3,4] // array: all arrays are dynamic
+    declare int[] iter = [0..10] // initialize array with values ranging from 0 till 10
+
+    declare int-> ptr = @a // pointer: use '@' as reference operator for address instead of '&'
+
+    declare int xyz // variables declared without an initial value will all be assigned a zeroeth value to avoid null conflict just like in Go programming language
+
+    declare elite int vip = 666 // const variable
+
+    declare elite string f_name = "ZeoXD"
+
+    broadcast("Hello world" + f_name + "!\n") // cout statement
+    demand(xyz) // cin statement: change cin statement based on the input variable. use getline method for string inputs and convert to a for loop with cin statements for direct array input
+
+    declare Student[] students
+    students.add(resgiter_student("ZeoXD", 100, 'A', loyal))
+    students.add(resgiter_student("RandomUser", -67, 'F', traitor))
+
+    impose (int i from [1..5]) { // for loop ranging from 1 till 5
+        interrogate (a > b) { // if else statement
+            // do something
+        } otherwise interrogate (i == 3) {
+            silence // break keyword
+        } otherwise interrogate (i % 2 == 0) {
+            proceed // continue keyword
+        } otherwise {
+            // do something else
+        }
+    }
+
+    // different types of for loops below
+    impose (int i from arr) { // for loop iterating over the 'arr' array
+    }
+    impose (Student s from students) { // enhanced for loop iterating over the 'Student' struct array
+    }
+    impose forever { // infinite loop
+    }
+    impose (a < b) { // while loop
+    }
+    // NOTE: use the impose keyword for both for and while loops.
+}

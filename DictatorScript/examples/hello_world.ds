@@ -1,0 +1,3 @@
+regime start {
+    broadcast("Hello, World!\n")
+}
