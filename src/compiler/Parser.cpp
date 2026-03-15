@@ -92,7 +92,10 @@ bool Parser::isTypeKeyword(TokenType type) const {
     return type == TokenType::KW_INT || type == TokenType::KW_FLOAT ||
            type == TokenType::KW_DOUBLE || type == TokenType::KW_CHAR ||
            type == TokenType::KW_STRING || type == TokenType::KW_BOOL ||
-           type == TokenType::KW_VOID || type == TokenType::KW_MAP;
+           type == TokenType::KW_VOID || type == TokenType::KW_MAP ||
+           type == TokenType::KW_AUTO ||   // Feature 3: auto type deduction
+           type == TokenType::KW_GUARD ||  // Feature 1: unique_ptr
+           type == TokenType::KW_SHARE;    // Feature 1: shared_ptr
 }
 
 bool Parser::looksLikeDeclaration() const {
@@ -294,6 +297,23 @@ TypeSpec Parser::parseBaseType() {
         case TokenType::KW_STRING: advance(); return TypeSpec::makePrimitive("string");
         case TokenType::KW_BOOL:   advance(); return TypeSpec::makePrimitive("bool");
         case TokenType::KW_VOID:   advance(); return TypeSpec::makePrimitive("void");
+        // Feature 3: auto type deduction
+        case TokenType::KW_AUTO:   advance(); return TypeSpec(TypeSpec::AUTODEDUCE, "auto");
+        // Feature 1: smart pointer types — guard T-> and share T->
+        case TokenType::KW_GUARD: {
+            advance(); // consume 'guard'
+            TypeSpec inner = parseBaseType();
+            TypeSpec t(TypeSpec::UNIQUE_PTR, inner.name);
+            t.subType = std::make_shared<TypeSpec>(inner);
+            return t;
+        }
+        case TokenType::KW_SHARE: {
+            advance(); // consume 'share'
+            TypeSpec inner = parseBaseType();
+            TypeSpec t(TypeSpec::SHARED_PTR, inner.name);
+            t.subType = std::make_shared<TypeSpec>(inner);
+            return t;
+        }
         case TokenType::KW_MAP: {
             advance(); // consume "map"
             expect(TokenType::OP_LT, "Expected '<' after 'map'");
@@ -388,6 +408,10 @@ NodePtr Parser::parseStatement() {
 
         case TokenType::KW_KILL:
             return parseKill();
+
+        // Feature 5: structured bindings — unpack [a,b] = expr
+        case TokenType::KW_UNPACK:
+            return parseUnpack();
 
         default:
             // Check if it looks like a declaration without 'declare' (e.g., Student s = {...})
@@ -675,12 +699,53 @@ std::unique_ptr<KillNode> Parser::parseKill() {
 }
 
 // ============================================================================
+// Feature 5: Structured bindings — unpack [a, b, ...] = expr
+// ============================================================================
+
+std::unique_ptr<UnpackStmtNode> Parser::parseUnpack() {
+    auto node = std::make_unique<UnpackStmtNode>();
+    node->line = current().line;
+    node->col  = current().col;
+
+    expect(TokenType::KW_UNPACK, "Expected 'unpack'");
+    expect(TokenType::PUNCT_LBRACKET, "Expected '[' after 'unpack'");
+
+    // Parse binding names: [a, b, c, ...]
+    do {
+        const Token& nameToken = expect(TokenType::TOKEN_IDENTIFIER,
+                                        "Expected identifier in unpack binding list");
+        node->bindings.push_back(nameToken.lexeme);
+    } while (match(TokenType::PUNCT_COMMA));
+
+    expect(TokenType::PUNCT_RBRACKET, "Expected ']' to close binding list");
+    expect(TokenType::OP_ASSIGN, "Expected '=' after unpack binding list");
+    node->expression = parseExpression();
+
+    return node;
+}
+
+// ============================================================================
 // Expression parsing — precedence climbing
 // ============================================================================
 
 ExprPtr Parser::parseExpression() {
     return parseOr();
 }
+
+// Helper: parse a comma-separated list of expressions enclosed in '(' ... ')'
+// Leaves the parser positioned after the closing ')'.
+std::vector<ExprPtr> Parser::parseArgList() {
+    std::vector<ExprPtr> args;
+    expect(TokenType::PUNCT_LPAREN, "Expected '(' to begin argument list");
+    if (!check(TokenType::PUNCT_RPAREN)) {
+        do {
+            args.push_back(parseExpression());
+        } while (match(TokenType::PUNCT_COMMA));
+    }
+    expect(TokenType::PUNCT_RPAREN, "Expected ')' to close argument list");
+    return args;
+}
+
 
 ExprPtr Parser::parseOr() {
     ExprPtr left = parseAnd();
@@ -1004,6 +1069,20 @@ ExprPtr Parser::parsePrimary() {
         case TokenType::KW_SUMMON:
             return parseSummon();
 
+        // Feature 1: Smart Pointer heap allocation — pass kind so codegen emits make_unique/make_shared
+        case TokenType::KW_SUMMON_GUARD:
+            return parseSummon(SummonExprNode::UNIQUE);
+        case TokenType::KW_SUMMON_SHARE:
+            return parseSummon(SummonExprNode::SHARED);
+
+        // Feature 2: Lambda expression — block(params) -> retType { body }
+        case TokenType::KW_BLOCK:
+            return parseLambda();
+
+        // Feature 4: Concurrency — spawn funcName(args)
+        case TokenType::KW_SPAWN:
+            return parseSpawn();
+
         case TokenType::OP_MINUS: {
             // Negative number or unary minus — handled in parseUnary
             // If we got here, it's an unexpected minus in primary position
@@ -1104,14 +1183,15 @@ ExprPtr Parser::parseInitList() {
 // Summon expression: summon Type[(args)]
 // ============================================================================
 
-ExprPtr Parser::parseSummon() {
+ExprPtr Parser::parseSummon(SummonExprNode::SummonKind kind) {
     int startLine = current().line;
     int startCol = current().col;
-    advance(); // consume 'summon'
+    advance(); // consume 'summon' / 'summon_guard' / 'summon_share'
 
     auto node = std::make_unique<SummonExprNode>();
     node->line = startLine;
     node->col = startCol;
+    node->kind = kind;          // record which keyword was used
     node->type = parseBaseType();
 
     // Optional constructor arguments
@@ -1125,6 +1205,73 @@ ExprPtr Parser::parseSummon() {
         expect(TokenType::PUNCT_RPAREN, "Expected ')' after summon arguments");
     }
 
+    return node;
+}
+
+// ============================================================================
+// Feature 2: Lambda expression — block(params) -> retType { body }
+// ============================================================================
+
+ExprPtr Parser::parseLambda() {
+    int startLine = current().line;
+    int startCol  = current().col;
+    advance(); // consume 'block'
+
+    auto node = std::make_unique<LambdaExprNode>();
+    node->line = startLine;
+    node->col  = startCol;
+
+    expect(TokenType::PUNCT_LPAREN, "Expected '(' after 'block'");
+
+    // Parse parameter list (same as command)
+    if (!check(TokenType::PUNCT_RPAREN)) {
+        do {
+            Parameter param;
+            param.line = current().line;
+            param.col  = current().col;
+            param.type = parseType();
+            const Token& paramName = expect(TokenType::TOKEN_IDENTIFIER, "Expected parameter name");
+            param.name = paramName.lexeme;
+            node->params.push_back(std::move(param));
+        } while (match(TokenType::PUNCT_COMMA));
+    }
+    expect(TokenType::PUNCT_RPAREN, "Expected ')' after lambda parameters");
+    expect(TokenType::OP_ARROW, "Expected '->' before lambda return type");
+    node->returnType = parseType();
+
+    skipNewlines();
+    node->body = parseBlock();
+    return node;
+}
+
+// ============================================================================
+// Feature 4: Spawn expression — spawn funcName(args)
+// ============================================================================
+
+ExprPtr Parser::parseSpawn() {
+    int startLine = current().line;
+    int startCol  = current().col;
+    advance(); // consume 'spawn'
+
+    auto node = std::make_unique<SpawnExprNode>();
+    node->line = startLine;
+    node->col  = startCol;
+
+    // Expect a function name
+    const Token& nameToken = expect(TokenType::TOKEN_IDENTIFIER,
+                                    "Expected function name after 'spawn'");
+    node->funcName = nameToken.lexeme;
+
+    // Optional arguments
+    if (check(TokenType::PUNCT_LPAREN)) {
+        advance();
+        if (!check(TokenType::PUNCT_RPAREN)) {
+            do {
+                node->arguments.push_back(parseExpression());
+            } while (match(TokenType::PUNCT_COMMA));
+        }
+        expect(TokenType::PUNCT_RPAREN, "Expected ')' after spawn arguments");
+    }
     return node;
 }
 
@@ -1148,7 +1295,8 @@ void Parser::synchronize() {
             current().type == TokenType::KW_IMPOSE ||
             current().type == TokenType::KW_REPORT ||
             current().type == TokenType::KW_BROADCAST ||
-            current().type == TokenType::KW_DEMAND) {
+            current().type == TokenType::KW_DEMAND ||
+            current().type == TokenType::KW_UNPACK) {
             return;
         }
         advance();

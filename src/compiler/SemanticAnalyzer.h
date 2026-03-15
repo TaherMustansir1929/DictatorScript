@@ -69,6 +69,10 @@ public:
     void visit(RangeLiteralNode& node) override;
     void visit(InitListNode& node) override;
     void visit(SummonExprNode& node) override;
+    // Feature nodes
+    void visit(LambdaExprNode& node) override;
+    void visit(SpawnExprNode& node) override;
+    void visit(UnpackStmtNode& node) override;
 
 private:
     std::string filename_;

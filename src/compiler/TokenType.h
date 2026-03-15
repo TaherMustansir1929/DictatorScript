@@ -65,6 +65,24 @@ enum class TokenType {
     // Keywords — Hashmaps
     KW_MAP,           // map/hashmap type keyword
 
+    // Keywords — Smart Pointers (C++11)
+    KW_GUARD,         // unique_ptr type prefix
+    KW_SHARE,         // shared_ptr type prefix
+    KW_SUMMON_GUARD,  // make_unique (alloc unique_ptr)
+    KW_SUMMON_SHARE,  // make_shared (alloc shared_ptr)
+
+    // Keywords — Lambda Expressions (C++11)
+    KW_BLOCK,         // inline anonymous function
+
+    // Keywords — Auto Type Deduction (C++11)
+    KW_AUTO,          // auto type
+
+    // Keywords — Concurrency (C++11)
+    KW_SPAWN,         // std::thread constructor
+
+    // Keywords — Structured Bindings (C++17)
+    KW_UNPACK,        // auto [a,b] = expr
+
     // Operators — Arithmetic
     OP_PLUS,
     OP_MINUS,
@@ -155,6 +173,14 @@ inline std::string tokenTypeToString(TokenType type) {
         case TokenType::KW_NULL_VAL:         return "KW_NULL_VAL";
         case TokenType::KW_ENLIST:           return "KW_ENLIST";
         case TokenType::KW_MAP:              return "KW_MAP";
+        case TokenType::KW_GUARD:            return "KW_GUARD";
+        case TokenType::KW_SHARE:            return "KW_SHARE";
+        case TokenType::KW_SUMMON_GUARD:     return "KW_SUMMON_GUARD";
+        case TokenType::KW_SUMMON_SHARE:     return "KW_SUMMON_SHARE";
+        case TokenType::KW_BLOCK:            return "KW_BLOCK";
+        case TokenType::KW_AUTO:             return "KW_AUTO";
+        case TokenType::KW_SPAWN:            return "KW_SPAWN";
+        case TokenType::KW_UNPACK:           return "KW_UNPACK";
         case TokenType::OP_PLUS:             return "OP_PLUS";
         case TokenType::OP_MINUS:            return "OP_MINUS";
         case TokenType::OP_STAR:             return "OP_STAR";

@@ -1,0 +1,44 @@
+// DictatorScript Example: Structured Bindings + Lambdas
+// Demonstrates: unpack (C++17 structured bindings), block (lambdas), auto
+
+law Point {
+    int x
+    int y
+}
+
+law Color {
+    int r
+    int g
+    int b
+}
+
+regime start {
+    broadcast("=== Structured Bindings + Lambdas Demo ===\n")
+
+    // Structured bindings: unpack a Point
+    declare Point origin
+    origin.x = 10
+    origin.y = 20
+    unpack [px, py] = origin
+    broadcast("Point: x=" + px + " y=" + py + "\n")
+
+    // Structured bindings: unpack a Color
+    declare Color red
+    red.r = 255
+    red.g = 0
+    red.b = 0
+    unpack [rv, gv, bv] = red
+    broadcast("Color: r=" + rv + " g=" + gv + " b=" + bv + "\n")
+
+    // Lambdas for transform operations
+    declare auto scale = block(int x, int y, int factor) -> void {
+        broadcast("Scaled: (" + (x * factor) + ", " + (y * factor) + ")\n")
+    }
+
+    declare auto distance = block(int x, int y) -> int {
+        report x * x + y * y
+    }
+
+    scale(px, py, 3)
+    broadcast("Distance^2 from origin: " + distance(px, py) + "\n")
+}

@@ -1,0 +1,29 @@
+// DictatorScript Example: Smart Pointers Demo
+// Demonstrates: guard (unique_ptr), share (shared_ptr), summon_guard, summon_share
+
+law Node {
+    int value
+    int next
+}
+
+regime start {
+    broadcast("=== Smart Pointers Demo ===\n")
+
+    // unique_ptr — sole ownership
+    declare guard int p1 = summon_guard int(42)
+    broadcast("guard int value: " + ^p1 + "\n")
+
+    // shared_ptr — shared ownership
+    declare share int p2 = summon_share int(100)
+    declare share int p3 = p2        // both point to same object
+    broadcast("share int value via p2: " + ^p2 + "\n")
+    broadcast("share int value via p3: " + ^p3 + "\n")
+
+    // Smart pointer to struct
+    declare guard Node nodePtr = summon_guard Node()
+    nodePtr->value = 77
+    nodePtr->next = 0
+    broadcast("guard Node value: " + nodePtr->value + "\n")
+
+    broadcast("Smart pointers cleaned up automatically!\n")
+}

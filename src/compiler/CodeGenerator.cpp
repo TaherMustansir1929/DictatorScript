@@ -51,12 +51,21 @@ std::string CodeGenerator::toCppType(const TypeSpec& type) const {
             return "std::unordered_map<int, int>";
         case TypeSpec::STRUCT:
             return type.name;
+        case TypeSpec::UNIQUE_PTR:
+            if (type.subType) return "std::unique_ptr<" + toCppType(*type.subType) + ">";
+            return "std::unique_ptr<void>";
+        case TypeSpec::SHARED_PTR:
+            if (type.subType) return "std::shared_ptr<" + toCppType(*type.subType) + ">";
+            return "std::shared_ptr<void>";
+        case TypeSpec::AUTODEDUCE:
+            return "auto";
     }
     return "void";
 }
 
 std::string CodeGenerator::getZeroValue(const TypeSpec& type) const {
-    if (type.kind == TypeSpec::POINTER) return "nullptr";
+    if (type.kind == TypeSpec::POINTER || type.kind == TypeSpec::UNIQUE_PTR || type.kind == TypeSpec::SHARED_PTR) return "nullptr";
+    if (type.kind == TypeSpec::AUTODEDUCE) return ""; // auto variables must be explicitly initialized
     if (type.kind == TypeSpec::ARRAY || type.kind == TypeSpec::MAP) return ""; // default-constructed
     if (type.name == "int" || type.name == "double" || type.name == "float") return "0";
     if (type.name == "char") return "'\\0'";
@@ -135,6 +144,8 @@ void CodeGenerator::emitHeaders() {
     emitLine("#include <unordered_map>");
     emitLine("#include <algorithm>");
     emitLine("#include <cctype>");
+    emitLine("#include <memory>"); // for std::unique_ptr, std::shared_ptr
+    emitLine("#include <thread>"); // for std::thread
     emit("\n");
 }
 
@@ -672,8 +683,21 @@ void CodeGenerator::visit(InitListNode& node) {
 }
 
 void CodeGenerator::visit(SummonExprNode& node) {
-    std::string result = "new " + toCppType(node.type);
-    if (!node.arguments.empty()) {
+    std::string result;
+    // Branch on the summon keyword used (stored in node.kind by the parser)
+    if (node.kind == SummonExprNode::UNIQUE) {
+        // summon_guard T(args)  →  std::make_unique<T>(args)
+        result = "std::make_unique<" + toCppType(node.type) + ">";
+    } else if (node.kind == SummonExprNode::SHARED) {
+        // summon_share T(args)  →  std::make_shared<T>(args)
+        result = "std::make_shared<" + toCppType(node.type) + ">";
+    } else {
+        // summon T(args)  →  new T(args)
+        result = "new " + toCppType(node.type);
+    }
+
+    // Always emit () for make_unique/make_shared; only emit () for raw new if args present
+    if (!node.arguments.empty() || node.kind == SummonExprNode::UNIQUE || node.kind == SummonExprNode::SHARED) {
         result += "(";
         for (size_t i = 0; i < node.arguments.size(); i++) {
             node.arguments[i]->accept(*this);
@@ -683,4 +707,68 @@ void CodeGenerator::visit(SummonExprNode& node) {
         result += ")";
     }
     exprStack_.push_back(result);
+}
+
+// ============================================================================
+// Feature node visitors
+// ============================================================================
+
+void CodeGenerator::visit(LambdaExprNode& node) {
+    // Maps to: [&](params) -> retType { body }
+    std::string result = "[&](";
+    for (size_t i = 0; i < node.params.size(); i++) {
+        if (i > 0) result += ", ";
+        result += toCppType(node.params[i].type) + " " + node.params[i].name;
+    }
+    result += ") -> " + toCppType(node.returnType) + " {\n";
+    
+    // Save current output content
+    std::string currentOut = output_.str();
+    output_.str("");
+    output_.clear();
+    
+    indent();
+    if (node.body) {
+        for (auto& stmt : node.body->statements) {
+            stmt->accept(*this);
+        }
+    }
+    dedent();
+    
+    std::string bodyCode = output_.str();
+    
+    // Restore output
+    output_.str(currentOut);
+    output_.seekp(0, std::ios_base::end);
+    
+    std::string indentStr(indentLevel_ * 4, ' ');
+    result += bodyCode + indentStr + "}";
+    
+    exprStack_.push_back(result);
+}
+
+void CodeGenerator::visit(SpawnExprNode& node) {
+    std::string result = "std::thread(" + node.funcName;
+    for (auto& arg : node.arguments) {
+        result += ", ";
+        arg->accept(*this);
+        result += popExpr();
+    }
+    result += ")";
+    exprStack_.push_back(result);
+}
+
+void CodeGenerator::visit(UnpackStmtNode& node) {
+    emitIndent();
+    emit("auto [");
+    for (size_t i = 0; i < node.bindings.size(); i++) {
+        if (i > 0) emit(", ");
+        emit(node.bindings[i]);
+    }
+    emit("] = ");
+    if (node.expression) {
+        node.expression->accept(*this);
+        emit(popExpr());
+    }
+    emit(";\n");
 }

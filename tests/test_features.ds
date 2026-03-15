@@ -1,0 +1,55 @@
+// DictatorScript Test — 5 Modern C++ Features
+// Feature 1: Smart Pointers (guard → unique_ptr, share → shared_ptr)
+// Feature 2: Lambda Expressions (block → C++ lambda)
+// Feature 3: Auto Type Deduction (auto)
+// Feature 4: Concurrency (spawn → std::thread)
+// Feature 5: Structured Bindings (unpack → auto [a,b]=...)
+
+// Struct for Feature 5 demo
+law Pair {
+    int a
+    int b
+}
+
+// Worker function for Feature 4 demo
+command workerTask(int id) -> void {
+    broadcast("  Thread " + id + " running.\n")
+}
+
+regime start {
+    broadcast("=== DictatorScript Modern C++ Features ===\n")
+
+    // ---- Feature 3: auto type deduction ----
+    declare auto answer = 42
+    declare auto pi = 3.14
+    declare auto msg = "DictatorScript!"
+    broadcast("[Feature 3] auto: " + answer + " " + pi + " " + msg + "\n")
+
+    // ---- Feature 1: Smart Pointers ----
+    declare guard int gPtr = summon_guard int(999)
+    declare share int sPtr = summon_share int(7)
+    broadcast("[Feature 1] unique=" + ^gPtr + " shared=" + ^sPtr + "\n")
+
+    // ---- Feature 2: Lambda Expressions ----
+    declare auto square = block(int n) -> int {
+        report n * n
+    }
+    declare auto sum = block(int a, int b) -> int {
+        report a + b
+    }
+    broadcast("[Feature 2] square(8)=" + square(8) + " sum(3,4)=" + sum(3, 4) + "\n")
+
+    // ---- Feature 4: Concurrency ----
+    declare auto t = spawn workerTask(1)
+    t.join()
+    broadcast("[Feature 4] Thread done.\n")
+
+    // ---- Feature 5: Structured Bindings ----
+    declare Pair p
+    p.a = 10
+    p.b = 20
+    unpack [x, y] = p
+    broadcast("[Feature 5] x=" + x + " y=" + y + "\n")
+
+    broadcast("\n=== All 5 Features OK! ===\n")
+}

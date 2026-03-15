@@ -396,8 +396,16 @@ void SemanticAnalyzer::visit(FuncCallNode& node) {
         errors_.error(filename_, node.line, node.col,
                       "Undeclared function '" + node.name + "'.");
     } else if (!sym->isFunction) {
-        errors_.error(filename_, node.line, node.col,
-                      "'" + node.name + "' is not a function.");
+        // Allow calling auto-typed variables (lambdas declared with `block`)
+        // and struct-typed callables; only reject plain non-callable symbols.
+        bool isCallable = (sym->type.kind == TypeSpec::AUTODEDUCE);
+        if (!isCallable) {
+            errors_.error(filename_, node.line, node.col,
+                          "'" + node.name + "' is not a function.");
+        }
+        // Resolve type to void (we can't know the lambda's return type without
+        // full type inference; the generated C++ is already correct).
+        node.resolvedType = TypeSpec::makeVoid();
     } else {
         // Check argument count.
         if (node.arguments.size() != sym->paramTypes.size()) {
@@ -413,6 +421,7 @@ void SemanticAnalyzer::visit(FuncCallNode& node) {
     for (auto& arg : node.arguments) {
         resolveExprType(*arg);
     }
+
 }
 
 void SemanticAnalyzer::visit(MethodCallNode& node) {
@@ -502,3 +511,68 @@ void SemanticAnalyzer::visit(SummonExprNode& node) {
     }
     node.resolvedType = TypeSpec::makePointer(node.type);
 }
+
+// ============================================================================
+// Feature node semantic visitors
+// ============================================================================
+
+// Feature 2: Lambda expression — block(params) -> retType { body }
+void SemanticAnalyzer::visit(LambdaExprNode& node) {
+    auto savedReturn = currentReturnType_;
+    currentReturnType_ = node.returnType;
+
+    symbols_.enterScope();
+    for (const auto& param : node.params) {
+        SymbolInfo info;
+        info.name = param.name;
+        info.type = param.type;
+        info.line = param.line;
+        info.col  = param.col;
+        symbols_.declare(info);
+    }
+    if (node.body) {
+        for (auto& stmt : node.body->statements) {
+            stmt->accept(*this);
+        }
+    }
+    symbols_.exitScope();
+    currentReturnType_ = savedReturn;
+
+    // Resolved type is a "callable" — we set it to the return type for simplicity.
+    node.resolvedType = node.returnType;
+}
+
+// Feature 4: Spawn expression — spawn funcName(args)
+void SemanticAnalyzer::visit(SpawnExprNode& node) {
+    // Validate the function exists.
+    auto sym = symbols_.lookup(node.funcName);
+    if (!sym) {
+        errors_.error(filename_, node.line, node.col,
+                      "Undeclared function '" + node.funcName + "' passed to spawn.");
+    }
+    for (auto& arg : node.arguments) {
+        resolveExprType(*arg);
+    }
+    // The thread type is represented as a pointer-to-void for type tracking purposes.
+    node.resolvedType = TypeSpec::makeStruct("std::thread");
+}
+
+// Feature 5: Structured bindings — unpack [a, b, ...] = expr
+void SemanticAnalyzer::visit(UnpackStmtNode& node) {
+    if (node.expression) {
+        resolveExprType(*node.expression);
+    }
+    // Declare each binding as an auto variable in current scope.
+    for (const auto& name : node.bindings) {
+        SymbolInfo info;
+        info.name = name;
+        info.type = TypeSpec(TypeSpec::AUTODEDUCE, "auto");
+        info.line = node.line;
+        info.col  = node.col;
+        if (!symbols_.declare(info)) {
+            errors_.error(filename_, node.line, node.col,
+                          "Duplicate binding name '" + name + "' in unpack.");
+        }
+    }
+}
+

@@ -75,6 +75,7 @@ private:
     std::unique_ptr<BroadcastNode> parseBroadcast();
     std::unique_ptr<DemandNode> parseDemand();
     std::unique_ptr<KillNode> parseKill();
+    std::unique_ptr<UnpackStmtNode> parseUnpack(); // structured bindings
 
     // ---- Expression parsing (precedence climbing) ----
     ExprPtr parseExpression();
@@ -91,7 +92,9 @@ private:
     // ---- Expression helpers ----
     ExprPtr parseArrayOrRangeLiteral();
     ExprPtr parseInitList();
-    ExprPtr parseSummon();
+    ExprPtr parseSummon(SummonExprNode::SummonKind kind = SummonExprNode::RAW);
+    ExprPtr parseLambda();   // lambda: block(params) -> retType { body }
+    ExprPtr parseSpawn();    // concurrency: spawn funcName(args)
     std::vector<ExprPtr> parseArgList();
 
     // ---- Error recovery ----
