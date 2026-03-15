@@ -1,3 +1,4 @@
 {
-  "cmake.sourceDirectory": "C:/Users/HP/Downloads/University/OOP/Lab Project"
+  "cmake.sourceDirectory": "${workspaceFolder}",
+  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

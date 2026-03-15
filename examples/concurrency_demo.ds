@@ -1,0 +1,30 @@
+// DictatorScript Example: Concurrency Demo
+// Demonstrates: spawn (std::thread), join, auto
+
+command printNumbers(int start, int count) -> void {
+    impose (int i from [0..count]) {
+        broadcast("Thread printing: " + (start + i) + "\n")
+    }
+}
+
+command computeSquares(int n) -> void {
+    broadcast("Squares from 1 to " + n + ":\n")
+    impose (int i from [1..n]) {
+        declare auto sq = i * i
+        broadcast("  " + i + "^2 = " + sq + "\n")
+    }
+}
+
+regime start {
+    broadcast("=== Concurrency Demo ===\n")
+
+    // Spawn two threads
+    declare auto t1 = spawn printNumbers(1, 5)
+    declare auto t2 = spawn computeSquares(5)
+
+    // Wait for both to complete
+    t1.join()
+    t2.join()
+
+    broadcast("All threads completed!\n")
+}

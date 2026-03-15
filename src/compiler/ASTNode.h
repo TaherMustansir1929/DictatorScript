@@ -32,6 +32,8 @@ class BroadcastNode;
 class DemandNode;
 class KillNode;
 class ExprStmtNode;
+// Feature nodes
+class UnpackStmtNode;       // Structured bindings: unpack [a,b] = expr
 
 // Expression nodes
 class BinaryExprNode;
@@ -51,13 +53,19 @@ class ArrayLiteralNode;
 class RangeLiteralNode;
 class InitListNode;
 class SummonExprNode;
+// Feature expression nodes
+class LambdaExprNode;       // Lambda: block(params) -> retType { body }
+class SpawnExprNode;        // Concurrency: spawn funcName(args)
 
 // ============================================================================
 // TypeSpec — describes a DictatorScript type (primitive, array, pointer, map, struct).
 // ============================================================================
 
 struct TypeSpec {
-    enum Kind { PRIMITIVE, ARRAY, POINTER, MAP, STRUCT };
+    enum Kind { PRIMITIVE, ARRAY, POINTER, MAP, STRUCT,
+                UNIQUE_PTR,   // guard T->  (std::unique_ptr<T>)
+                SHARED_PTR,   // share T->  (std::shared_ptr<T>)
+                AUTODEDUCE }; // auto
 
     Kind kind;
     std::string name; // base type name: "int", "float", "Student", etc.
@@ -115,6 +123,7 @@ public:
     virtual void visit(DemandNode& node) = 0;
     virtual void visit(KillNode& node) = 0;
     virtual void visit(ExprStmtNode& node) = 0;
+    virtual void visit(UnpackStmtNode& node) = 0;  // structured bindings
 
     // Expressions
     virtual void visit(BinaryExprNode& node) = 0;
@@ -134,6 +143,8 @@ public:
     virtual void visit(RangeLiteralNode& node) = 0;
     virtual void visit(InitListNode& node) = 0;
     virtual void visit(SummonExprNode& node) = 0;
+    virtual void visit(LambdaExprNode& node) = 0;  // lambda expressions
+    virtual void visit(SpawnExprNode& node) = 0;   // concurrency
 };
 
 // ============================================================================
@@ -545,11 +556,57 @@ public:
     void print(int indent = 0) const override;
 };
 
-// Dynamic allocation: summon Type[(args)]
+// Dynamic allocation: summon / summon_guard / summon_share Type[(args)]
 class SummonExprNode : public ExprNode {
 public:
+    // Which allocation keyword was used:
+    //   RAW    → summon     → new T(...)
+    //   UNIQUE → summon_guard → std::make_unique<T>(...)
+    //   SHARED → summon_share → std::make_shared<T>(...)
+    enum SummonKind { RAW, UNIQUE, SHARED };
+    SummonKind kind = RAW;
+
     TypeSpec type;
     std::vector<ExprPtr> arguments; // optional constructor args
+
+    void accept(ASTVisitor& visitor) override { visitor.visit(*this); }
+    void print(int indent = 0) const override;
+};
+
+
+// ============================================================================
+// FEATURE NODES — added for 5 new C++ language features
+// ============================================================================
+
+// Lambda expression: block(params) -> retType { body }
+// Maps to: [](params) -> retType { body }
+class LambdaExprNode : public ExprNode {
+public:
+    std::vector<Parameter> params;
+    TypeSpec returnType;
+    std::unique_ptr<BlockNode> body;
+
+    void accept(ASTVisitor& visitor) override { visitor.visit(*this); }
+    void print(int indent = 0) const override;
+};
+
+// Spawn expression: spawn funcName(args)
+// Maps to: std::thread(funcName, args...)
+class SpawnExprNode : public ExprNode {
+public:
+    std::string funcName;
+    std::vector<ExprPtr> arguments;
+
+    void accept(ASTVisitor& visitor) override { visitor.visit(*this); }
+    void print(int indent = 0) const override;
+};
+
+// Structured binding statement: unpack [a, b, ...] = expr
+// Maps to: auto [a, b, ...] = expr;
+class UnpackStmtNode : public ASTNode {
+public:
+    std::vector<std::string> bindings;  // variable names
+    ExprPtr expression;                 // right-hand side
 
     void accept(ASTVisitor& visitor) override { visitor.visit(*this); }
     void print(int indent = 0) const override;

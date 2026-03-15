@@ -55,6 +55,24 @@ void Lexer::initKeywords() {
 
     // Hashmaps
     keywords_["map"]         = TokenType::KW_MAP;
+
+    // Smart Pointers (C++11) — Feature 1
+    keywords_["guard"]        = TokenType::KW_GUARD;
+    keywords_["share"]        = TokenType::KW_SHARE;
+    keywords_["summon_guard"] = TokenType::KW_SUMMON_GUARD;
+    keywords_["summon_share"] = TokenType::KW_SUMMON_SHARE;
+
+    // Lambda Expressions (C++11) — Feature 2
+    keywords_["block"]       = TokenType::KW_BLOCK;
+
+    // Auto Type Deduction (C++11) — Feature 3
+    keywords_["auto"]        = TokenType::KW_AUTO;
+
+    // Concurrency (C++11) — Feature 4
+    keywords_["spawn"]       = TokenType::KW_SPAWN;
+
+    // Structured Bindings (C++17) — Feature 5
+    keywords_["unpack"]      = TokenType::KW_UNPACK;
 }
 
 char Lexer::current() const {

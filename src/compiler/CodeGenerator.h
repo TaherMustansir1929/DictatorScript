@@ -45,6 +45,7 @@ public:
     void visit(DemandNode& node) override;
     void visit(KillNode& node) override;
     void visit(ExprStmtNode& node) override;
+    void visit(UnpackStmtNode& node) override;
 
     // Expressions (push result onto exprStack_)
     void visit(BinaryExprNode& node) override;
@@ -64,6 +65,8 @@ public:
     void visit(RangeLiteralNode& node) override;
     void visit(InitListNode& node) override;
     void visit(SummonExprNode& node) override;
+    void visit(LambdaExprNode& node) override;
+    void visit(SpawnExprNode& node) override;
 
 private:
     ErrorReporter& errors_;

@@ -1,0 +1,28 @@
+// DictatorScript Example: Fibonacci with auto and lambdas
+// Demonstrates: auto type deduction, lambda expressions, recursion
+
+command fibonacci(int n) -> int {
+    interrogate (n <= 1) {
+        report n
+    }
+    report fibonacci(n - 1) + fibonacci(n - 2)
+}
+
+regime start {
+    broadcast("=== Fibonacci Demo ===\n")
+
+    // Use auto to store a lambda that prints fibonacci sequence
+    declare auto printFib = block(int limit) -> void {
+        broadcast("Fibonacci sequence: ")
+        impose (int i from [0..limit]) {
+            broadcast(fibonacci(i) + " ")
+        }
+        broadcast("\n")
+    }
+
+    printFib(10)
+
+    // Use auto to call fibonacci results
+    declare auto result = fibonacci(15)
+    broadcast("fibonacci(15) = " + result + "\n")
+}

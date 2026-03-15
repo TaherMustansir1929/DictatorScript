@@ -18,6 +18,12 @@ std::string TypeSpec::toString() const {
                    (valType ? valType->toString() : "?") + ">";
         case STRUCT:
             return name;
+        case UNIQUE_PTR:
+            return "guard " + (subType ? subType->toString() : name) + "->";
+        case SHARED_PTR:
+            return "share " + (subType ? subType->toString() : name) + "->";
+        case AUTODEDUCE:
+            return "auto";
     }
     return "unknown";
 }
@@ -352,4 +358,37 @@ void SummonExprNode::print(int indent) const {
     for (const auto& arg : arguments) {
         arg->print(indent + 1);
     }
+}
+
+// ============================================================================
+// Feature node print implementations
+// ============================================================================
+
+void LambdaExprNode::print(int indent) const {
+    printIndent(indent);
+    std::cout << "Lambda -> " << returnType.toString() << std::endl;
+    for (const auto& param : params) {
+        printIndent(indent + 1);
+        std::cout << "Param: " << param.type.toString() << " " << param.name << std::endl;
+    }
+    if (body) body->print(indent + 1);
+}
+
+void SpawnExprNode::print(int indent) const {
+    printIndent(indent);
+    std::cout << "Spawn: " << funcName << std::endl;
+    for (const auto& arg : arguments) {
+        arg->print(indent + 1);
+    }
+}
+
+void UnpackStmtNode::print(int indent) const {
+    printIndent(indent);
+    std::cout << "Unpack: [";
+    for (size_t i = 0; i < bindings.size(); i++) {
+        if (i > 0) std::cout << ", ";
+        std::cout << bindings[i];
+    }
+    std::cout << "]" << std::endl;
+    if (expression) expression->print(indent + 1);
 }
