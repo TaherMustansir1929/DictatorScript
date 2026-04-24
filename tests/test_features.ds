@@ -1,55 +1,116 @@
-// DictatorScript Test — 5 Modern C++ Features
-// Feature 1: Smart Pointers (guard → unique_ptr, share → shared_ptr)
-// Feature 2: Lambda Expressions (block → C++ lambda)
-// Feature 3: Auto Type Deduction (auto)
-// Feature 4: Concurrency (spawn → std::thread)
-// Feature 5: Structured Bindings (unpack → auto [a,b]=...)
+// ═══════════════════════════════════════════════════════════════
+//  test_features.ds
+//  DictatorScript Test — 5 Modern C++ Features
+//
+//  Feature 1 : Smart Pointers      (guard  → unique_ptr,
+//                                   share  → shared_ptr)
+//  Feature 2 : Lambda Expressions  (block  → C++ lambda)
+//  Feature 3 : Auto Type Deduction (auto   → auto)
+//  Feature 4 : Concurrency         (spawn  → std::thread)
+//  Feature 5 : Structured Bindings (unpack → auto [a,b] = ...)
+// ═══════════════════════════════════════════════════════════════
 
-// Struct for Feature 5 demo
+
+// ── Supporting struct for Feature 5 ─────────────────────────────
 law Pair {
-    int a
-    int b
+    int first
+    int second
 }
 
-// Worker function for Feature 4 demo
+
+// ── Worker function for Feature 4 ───────────────────────────────
 command workerTask(int id) -> void {
-    broadcast("  Thread " + id + " running.\n")
+    broadcast("  [Thread] id=" + id + " started and finished.\n")
 }
 
+
+// ── Helpers for Feature 2 validation ────────────────────────────
+command expectInt(string label, int got, int want) -> void {
+    interrogate (got == want) {
+        broadcast("  OK  " + label + " = " + got + "\n")
+    } otherwise {
+        broadcast("  ERR " + label + ": expected " + want + " got " + got + "\n")
+    }
+}
+
+
+// ════════════════════════════════════════════════════════════════
 regime start {
-    broadcast("=== DictatorScript Modern C++ Features ===\n")
 
-    // ---- Feature 3: auto type deduction ----
-    declare auto answer = 42
-    declare auto pi = 3.14
-    declare auto msg = "DictatorScript!"
-    broadcast("[Feature 3] auto: " + answer + " " + pi + " " + msg + "\n")
+    broadcast("=== DictatorScript Modern C++ Features ===\n\n")
 
-    // ---- Feature 1: Smart Pointers ----
+
+    // ── Feature 3 : Auto Type Deduction ─────────────────────────
+    broadcast("[Feature 3] Auto type deduction\n")
+
+    declare auto answer  = 42
+    declare auto ratio   = 3.14
+    declare auto heading = "DictatorScript!"
+
+    broadcast("  answer  = " + answer  + "\n")
+    broadcast("  ratio   = " + ratio   + "\n")
+    broadcast("  heading = " + heading + "\n\n")
+
+
+    // ── Feature 1 : Smart Pointers ───────────────────────────────
+    broadcast("[Feature 1] Smart pointers\n")
+
     declare guard int gPtr = summon_guard int(999)
     declare share int sPtr = summon_share int(7)
-    broadcast("[Feature 1] unique=" + ^gPtr + " shared=" + ^sPtr + "\n")
 
-    // ---- Feature 2: Lambda Expressions ----
+    broadcast("  unique_ptr value = " + ^gPtr + "\n")
+    broadcast("  shared_ptr value = " + ^sPtr + "\n\n")
+
+
+    // ── Feature 2 : Lambda Expressions ──────────────────────────
+    broadcast("[Feature 2] Lambda expressions\n")
+
     declare auto square = block(int n) -> int {
         report n * n
     }
-    declare auto sum = block(int a, int b) -> int {
+
+    declare auto add = block(int a, int b) -> int {
         report a + b
     }
-    broadcast("[Feature 2] square(8)=" + square(8) + " sum(3,4)=" + sum(3, 4) + "\n")
 
-    // ---- Feature 4: Concurrency ----
-    declare auto t = spawn workerTask(1)
-    t.join()
-    broadcast("[Feature 4] Thread done.\n")
+    declare auto clamp = block(int val, int lo, int hi) -> int {
+        interrogate (val < lo) { report lo }
+        interrogate (val > hi) { report hi }
+        report val
+    }
 
-    // ---- Feature 5: Structured Bindings ----
-    declare Pair p
-    p.a = 10
-    p.b = 20
-    unpack [x, y] = p
-    broadcast("[Feature 5] x=" + x + " y=" + y + "\n")
+    expectInt("square(8)",        square(8),        64)
+    expectInt("add(3, 4)",        add(3, 4),         7)
+    expectInt("clamp(15, 0, 10)", clamp(15, 0, 10), 10)
+    expectInt("clamp(-5, 0, 10)", clamp(-5, 0, 10),  0)
+    broadcast("\n")
 
-    broadcast("\n=== All 5 Features OK! ===\n")
-}
+
+    // ── Feature 4 : Concurrency ──────────────────────────────────
+    broadcast("[Feature 4] Concurrency (std::thread)\n")
+
+    declare auto t1 = spawn workerTask(1)
+    declare auto t2 = spawn workerTask(2)
+    t1.join()
+    t2.join()
+
+    broadcast("  Both threads joined.\n\n")
+
+
+    // ── Feature 5 : Structured Bindings ─────────────────────────
+    broadcast("[Feature 5] Structured bindings\n")
+
+    declare Pair coords
+    coords.first  = 10
+    coords.second = 20
+
+    unpack [x, y] = coords
+
+    broadcast("  x = " + x + "\n")
+    broadcast("  y = " + y + "\n\n")
+
+    // Verify binding values are correct
+    expectInt("x (binding)", x, 10)
+    expectInt("y (binding)", y, 20)
+    broadcast("\n")
+
