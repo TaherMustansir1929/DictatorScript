@@ -12,6 +12,13 @@ cmake ..
 cmake --build .
 ```
 
+or
+
+```bash
+cmake -S . -B build
+cmake --build build
+```
+
 This produces the `dsc` executable.
 
 ## Usage
