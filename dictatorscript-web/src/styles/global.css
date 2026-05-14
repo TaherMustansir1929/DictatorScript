@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+:root {
+  /* Light-red/crimson hue */
+  --sl-hue: 350;
+  --sl-color-accent-high: hsl(var(--sl-hue), 100%, 75%);
+  --sl-color-accent: hsl(var(--sl-hue), 100%, 65%);
+  --sl-color-accent-low: hsl(var(--sl-hue), 100%, 25%);
+  --sl-color-text-accent: hsl(var(--sl-hue), 100%, 85%);
+}
+
+:root[data-theme='light'] {
+  --sl-color-accent-high: hsl(var(--sl-hue), 100%, 25%);
+  --sl-color-accent: hsl(var(--sl-hue), 85%, 50%);
+  --sl-color-accent-low: hsl(var(--sl-hue), 100%, 85%);
+  --sl-color-text-accent: hsl(var(--sl-hue), 100%, 30%);
+}

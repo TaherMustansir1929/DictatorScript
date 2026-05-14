@@ -1,0 +1,36 @@
+---
+title: DictatorScript
+description: A custom educational programming language inspired by Go's simplicity, mapped onto C++ fundamentals.
+template: splash
+hero:
+  tagline: A transpiling compiler mapping simple syntax to powerful C++
+  image:
+    file: ../../assets/icon.png
+  actions:
+    - text: Getting Started
+      link: /getting-started/installation/
+      icon: right-arrow
+    - text: Language Reference
+      link: /language/basics/
+      icon: open-book
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Discover DictatorScript
+
+<CardGrid stagger>
+	<Card title="Simple Syntax" icon="pencil">
+		DictatorScript provides a clean, Go-like syntax that is easy to learn and write.
+	</Card>
+	<Card title="C++ Power" icon="rocket">
+		Code is transpiled directly to valid C++, giving you native performance and features.
+	</Card>
+	<Card title="Modern Features" icon="setting">
+		Enjoy modern paradigms like smart pointers, lambdas, and auto type deduction.
+	</Card>
+	<Card title="IDE Support" icon="puzzle">
+		A dedicated VS Code extension provides syntax highlighting and tooling.
+	</Card>
+</CardGrid>
