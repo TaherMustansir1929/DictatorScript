@@ -3,8 +3,13 @@
   "displayName": "DictatorScript",
   "description": "Language support for DictatorScript (.ds) — syntax highlighting, linting, LSP, and more.",
   "version": "0.2.0",
-  "publisher": "dictatorscript",
+  "publisher": "zeoxd",
   "license": "MIT",
+  "repository": {
+    "directory": "/dictatorscript-vscode",
+    "type": "git",
+    "url": "https://github.com/TaherMustansir1929/DictatorScript"
+  },
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -74,7 +79,11 @@
         },
         "dictatorscript.trace.server": {
           "type": "string",
-          "enum": ["off", "messages", "verbose"],
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
           "default": "off",
           "description": "Traces the communication between VS Code and the DictatorScript language server."
         }
@@ -93,7 +102,7 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.80.0",
-    "typescript": "^5.3.0",
+    "typescript": "^5.9.3",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.11"
   }
