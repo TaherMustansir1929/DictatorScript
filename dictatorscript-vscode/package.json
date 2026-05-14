@@ -4,6 +4,7 @@
   "description": "Language support for DictatorScript (.ds) — syntax highlighting, linting, LSP, and more.",
   "version": "0.2.0",
   "publisher": "zeoxd",
+  "icon": "icon.png",
   "license": "MIT",
   "repository": {
     "directory": "/dictatorscript-vscode",
